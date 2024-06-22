@@ -42,8 +42,8 @@ const login = async () => {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                 })
-        // if ((await res).status === 200)
-                // router.push('/');
+        if ((await res).status === 200)
+                router.push('/');
     } catch (error) {
         console.error(error);
     }
