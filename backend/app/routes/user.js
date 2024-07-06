@@ -1,20 +1,25 @@
 const router = require('express').Router();
 const User = require('../Models/userModel');
+const jwt = require('jsonwebtoken');
 const { hashPassword } = require('../utils/bcrypt')
 const { checkSchema, matchedData, validationResult} = require('express-validator')
 const {newUserValidation, loginUserValidation} = require('../Validations/user')
 const passport = require('../strategies/localStrategy')
 
 
-router.post('/api/add-user',  checkSchema(newUserValidation), async (request, response) => {
+router.post('/api/add-user', checkSchema(newUserValidation), async (request, response) => {
     const errors = validationResult(request)
-    if (request.isAuthenticated() === false) return response.status(400).json({message: 'Login failed'})
-    if (!errors.isEmpty()) return response.status(401).json(errors.array())
-        console.log(request.user)
+    console.log(errors.array())
+    if (request.isAuthenticated === false) return response.status(400).json({message: 'Login failed'})
+    if (!errors.isEmpty()) return response.status(401).json({message: errors.array()})
+
+    console.log(request.headers)
+
     if (request.user.role !== 'admin') return response.status(400).send('unauthorised')
     const user = matchedData(request);
+    console.log(user)
     user.password = await hashPassword(user.password)
-    try  {d
+    try  {
         const newUser = User({...user})
         await newUser.save()
         return response.status(201).json(newUser)
@@ -24,7 +29,7 @@ router.post('/api/add-user',  checkSchema(newUserValidation), async (request, re
     } 
 })
 
-router.post('/api/login', checkSchema(loginUserValidation), passport.authenticate('local'), async (request, response) => {
+router.post('/api/login', passport.authenticate('local'), checkSchema(loginUserValidation), async (request, response) => {
     // if (request.isAuthenticated() === false) return response.status(400).json({message: 'Login failed'})
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleDateString('en-US',{
@@ -32,8 +37,14 @@ router.post('/api/login', checkSchema(loginUserValidation), passport.authenticat
         day: '2-digit',
         year: 'numeric'
     })
-    const username = request.user ? request.user.name : 'user';
-    return response.status(200).json({message: 'Login successful'
+    const token = jwt.sign({id: request.user._id, role: request.user.role, username: request.user.username}, 'secret')
+    response.cookie('jwt', token, {
+        // httpOnly: true,
+        // secure: true,
+        sameSite: 'none',
+        // expires: new Date(Date.now() + 1000 * 60 * 60 * 24)
+    })
+    return response.status(200).json({jwt: token
     })
 })
 

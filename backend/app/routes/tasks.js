@@ -1,16 +1,18 @@
 const router = require('express').Router();
 const Task = require('../Models/taskModel');
+const User = require('../Models/userModel')
 const { checkSchema, matchedData, validationResult} = require('express-validator')
 const {taskValidation, taskPatchValidation } = require('../Validations/task');
-const { request } = require('express');
 
 
 router.post('/api/add-task',  checkSchema(taskValidation), async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(400).json({message: 'Login failed'})
+    console.log('api called')
+    // if (request.isAuthenticated === false) return response.status(400).json({message: 'Login failed'})
     const errors = validationResult(request)
     if (!errors.isEmpty()) return response.status(400).json(errors.array())
     const task = matchedData(request);
     try  {
+        console.log('creating task')
         const newTask = Task({...task})
         await newTask.save()
         return response.status(201).json(newTask)
@@ -19,58 +21,112 @@ router.post('/api/add-task',  checkSchema(taskValidation), async (request, respo
         return response.status(400).send(error)
     }
 });
-router.get('/home-page', async(request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'});
+router.get('/api/home-page', async(request, response) => {
     try {
         const username = request.user.username;
         const role = request.user.role;
-        const date = new Date().toISOString();
-        const completedTasks = await Task.find({ status: 'completed' }).countDocuments();
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleDateString('en-US',{
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric'
+        })
+        const totalTasks = await Task.find().countDocuments();
+        const totalPages = Math.ceil(totalTasks / 10);
+        const completedTasks = await Task.find({ status: 'done' }).countDocuments();
         const todoTasks = await Task.find({ status: 'todo' }).countDocuments();
         const inProgressTasks = await Task.find({ status: 'in-progress' }).countDocuments();
-        const taskCounts = {
-            completed: completedTasks,
-            todo: todoTasks,
-            inProgress: inProgressTasks
-        };
-        return response.status(200).json({taskCounts, username, role, date });
-    } catch (error) {
-        console.log(error);
-        return response.status(501).json({ message: "unable to load homepage" });
-    }
-})
-
-router.get('/api/tasks', async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'})
-    const { startId = null, sortBy = 'status', direction = 1, limit = 10 } = request.query;
-
-    try {
+        const taskCounts = [
+            { name: "Done", total: completedTasks },
+            { name: "In Progress", total: inProgressTasks },
+            { name: "To Do", total: todoTasks }
+        ];
+        const { startId = null, sortBy = '', direction = 1, limit = 10 } = request.query;
         const query = startId ? { _id: { $gt: startId } } : {};
         const tasks = await Task.find(query)
-            .sort({ [sortBy]: Number(direction) })
+            // .sort({ [sortBy]: Number(direction) })
             .limit(Number(limit));
         const cleanTasks = tasks.map(task => {
             return {
                 id: task._id,
-                title: task.title,
-                location: task.location,
-                subCounty: task.subCounty,
-                financialYear: task.financialYear,
-                status: task.status,
-                remarks: task.remarks,
-                description: task.description,
+                Name: task.name,
+                Location: task.location,
+                Subcounty: task.subcounty,
+                'Financial Year': task.financialYear,
+                Status: task.status,
+                Remarks: task.remarks,
+                Description: task.description,
             }
         })
-        
-        return response.status(200).json(cleanTasks)
+        let users;
+        if (request.user.role === 'admin') {
+            users = await User.find().limit(10);
+            // console.log('users', users)
+        }
+        const cleanUsers = users.map(user => {
+            return {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+            }
+        }
+        )
+
+        // console.log('clean users', users)
+
+        return response.status(200).json({taskCounts, username, role, date: formattedDate, tableData: cleanTasks, totalPages ,userData: cleanUsers });
     } catch (error) {
-        console.log(error)
-        return response.status(501).json({message: "unable to find tasks"});
+        console.log(error);
+        return response.status(501).json({ message: "unable to load homepage" });
     }
+
 })
 
+router.get('/api/tasks', async (request, response) => {
+    if (!request.isAuthenticated) return response.status(401).json({message: 'Login failed'});
+
+    const { startId = null, sortBy = 'status', direction = '1', limit = '10' } = request.query;
+
+    try {
+        // Convert direction and limit to numbers
+        const directionNum = Number(direction);
+        const limitNum = Number(limit);
+
+        // Build the query based on startId
+        // const query = startId ? { _id: { $gt: startId } } : {};
+        let query = {};
+        if (startId) {
+            query = directionNum === 1 ? { _id: { $gt: startId } } : { _id: { $lt: startId } };
+        }
+        
+
+        // Fetch tasks from the database with pagination and sorting
+        const tasks = await Task.find(query)
+            .sort({ [sortBy]: 1})
+            .limit(limitNum);
+
+        // Clean and format the response data
+        const cleanTasks = tasks.map(task => ({
+            id: task._id,
+            Name: task.name,
+            Location: task.location,
+            Subcounty: task.subcounty,
+            'Financial Year': task.financialYear,
+            Status: task.status,
+            Remarks: task.remarks,
+            Description: task.description,
+        }));
+
+        return response.status(200).json({tableData: cleanTasks});
+    } catch (error) {
+        console.error(error);
+        return response.status(501).json({message: "Unable to find tasks"});
+    }
+});
+
+
 router.get('/api/tasks/:id', async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'})
+    if (request.isAuthenticated === false) return response.status(401).json({message: 'Login failed'})
     const { id } = request.params;
     try {
         const task = await Task.findById(id);
@@ -82,7 +138,7 @@ router.get('/api/tasks/:id', async (request, response) => {
 })
 
 router.put('/api/tasks/:id', checkSchema(taskValidation), async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'})
+    if (request.isAuthenticated === false) return response.status(401).json({message: 'Login failed'})
     const errors = validationResult(request)
     if (!errors.isEmpty()) return response.status(401).json(errors.array())
     const { id } = request.params;
@@ -97,9 +153,10 @@ router.put('/api/tasks/:id', checkSchema(taskValidation), async (request, respon
 })
 
 router.patch('/api/tasks/:id',  checkSchema(taskPatchValidation), async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'})
+    if (request.isAuthenticated === false) return response.status(401).json({message: 'Login failed'})
     const errors = validationResult(request)
-    if (!errors.isEmpty()) return response.status(401).json(errors.array())
+    if (!errors.isEmpty()) return response.status(400).json(errors.array())
+        console.log(errors.array())
     const { id } = request.params;
     const task = matchedData(request);
     try {
@@ -112,7 +169,7 @@ router.patch('/api/tasks/:id',  checkSchema(taskPatchValidation), async (request
 })
 
 router.delete('/api/tasks/:id', async (request, response) => {
-    if (request.isAuthenticated() === false) return response.status(401).json({message: 'Login failed'})
+    if (request.isAuthenticated === false) return response.status(401).json({message: 'Login failed'})
     const { id } = request.params;
     try {
         await Task.findByIdAndDelete(id);

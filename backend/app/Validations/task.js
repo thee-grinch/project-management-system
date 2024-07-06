@@ -1,97 +1,128 @@
+const { checkSchema } = require('express-validator');
+
 const taskValidation = {
     name: {
         in: ['body'],
-        isString: true,
-        exists: true,
-        errorMessage: 'Name is required'
+        isString: {
+            errorMessage: 'Name must be a string'
+        },
+        exists: {
+            errorMessage: 'Name is required'
+        }
     },
     location: {
         in: ['body'],
-        isString: true,
-        exists: true,
-        errorMessage: 'Location is required'
+        isString: {
+            errorMessage: 'Location must be a string'
+        },
+        exists: {
+            errorMessage: 'Location is required'
+        }
     },
     subcounty: {
         in: ['body'],
-        isString: true,
-        exists: true,
-        errorMessage: 'Subcounty is required'
+        isString: {
+            errorMessage: 'Subcounty must be a string'
+        },
+        exists: {
+            errorMessage: 'Subcounty is required'
+        }
     },
     financialYear: {
         in: ['body'],
-        isString: true,
-        exists: true,
-        errorMessage: 'Financial year is required'
+        isString: {
+            errorMessage: 'Financial Year must be a string'
+        },
+        exists: {
+            errorMessage: 'Financial Year is required'
+        }
     },
     status: {
         in: ['body'],
-        isString: true,
-        isIn: {
-            errorMessage: "status should be either in to-do, completed , in progres",
-            options: ["todo", "in-progress", "done"]
+        isString: {
+            errorMessage: 'Status must be a string'
         },
-        exists: true,
-        errorMessage: 'Status is required'
+        isIn: {
+            options: [['todo', 'in-progress', 'done']],
+            errorMessage: 'Status should be either todo, in-progress, or done'
+        },
+        exists: {
+            errorMessage: 'Status is required'
+        }
     },
     remarks: {
         in: ['body'],
-        isString: true,
-        exists: false,
-        errorMessage: 'Remarks is required'
+        isString: {
+            errorMessage: 'Remarks must be a string'
+        },
+        exists: {
+            errorMessage: 'Remarks is required'
+        }
     },
     description: {
         in: ['body'],
-        isString: true,
-        exists: false,
-        errorMessage: 'Description is required'
+        isString: {
+            errorMessage: 'Description must be a string'
+        },
+        optional: true,
+        errorMessage: 'Description is optional'
     }
-}
+};
+
 const taskPatchValidation = {
     name: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Name is required'
+        isString: {
+            errorMessage: 'Name must be a string'
+        },
+        optional: true
     },
     location: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Location is required'
+        isString: {
+            errorMessage: 'Location must be a string'
+        },
+        optional: true
     },
     subcounty: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Subcounty is required'
+        isString: {
+            errorMessage: 'Subcounty must be a string'
+        },
+        optional: true
     },
     financialYear: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Financial year is required'
+        isString: {
+            errorMessage: 'Financial Year must be a string'
+        },
+        optional: true
     },
     status: {
         in: ['body'],
-        isString: true,
-        isIn: {
-            errorMessage: "status should be either in to-do, completed , in progres",
-            options: ["todo", "in-progress", "done"]
+        isString: {
+            errorMessage: 'Status must be a string'
         },
-        optional: true,
-        errorMessage: 'Status is required'
+        isIn: {
+            options: [['todo', 'in-progress', 'done']],
+            errorMessage: 'Status should be either todo, in-progress, or done'
+        },
+        optional: true
     },
     remarks: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Remarks is required'
+        isString: {
+            errorMessage: 'Remarks must be a string'
+        },
+        optional: true
     },
     description: {
         in: ['body'],
-        isString: true,
-        optional: true,
-        errorMessage: 'Description is required'
+        isString: {
+            errorMessage: 'Description must be a string'
+        },
+        optional: true
     }
-}
-module.exports = {taskValidation, taskPatchValidation};
+};
+
+module.exports = { taskValidation, taskPatchValidation };

@@ -1,17 +1,151 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import SummaryCard from './SummaryCard.vue';
+import TableForm from './TableForm.vue';
+import UserForm from './UserForm.vue'
+import TableData from './TableData.vue'
+import SuccessPopup from './SuccessPopup.vue';
+import FailurePopup from './FailurePopup.vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+ 
+
+const isLoading = ref(true);
+const data = ref({
+    date: '',
+    taskCount: {},
+    username: '',
+    role: '',
+
+})
+const currentPage = ref(1);
+let totalPages = 1;
+let tasks = [];
+const showInput = ref(false); //show create task form
+const showUserInput = ref(false); //show create user form
+const showData = ref(false) //show task data after click
+const showTasks = ref(true) //toggle between user table and task table
+
+const showSuccessPopup = ref(false);
+const showFailurePopup = ref(false);
+let displayMessage = "testing";
+let failureMessage = "testing";
+// const 
+
+const displaySuccessPopup = (message) => {
+    console.log("form-submitted",  message)
+    displayMessage = message;
+    showSuccessPopup.value = true;
+    showUserInput.value = false;
+    showInput.value = false;
+    showData.value = false;
+    setTimeout(() => {
+        showSuccessPopup.value = false;
+    }, 3000);
+};
+const displayFailurePopup = (message) => {
+    console.log("form-submitted",  message)
+    displayMessage = message;
+    showFailurePopup.value = true;
+    showUserInput.value = false;
+    showInput.value = false;
+    showData.value = false;
+    setTimeout(() => {
+        showFailurePopup.value = false;
+    }, 3000);
+};
+
+let display = {}
+let tableData, userData;
+let sortBy = null; //used for query table data
+let direction = 1; //used for query table data
+let startId = ""; //used for query table data
+const createRow = (row) => {
+        display = { ...row, 'FinancialYear': row['Financial Year'] };
+        delete display['Financial Year']
+}
+const displayUserForm = () => {
+    showUserInput.value = !showUserInput.value;
+       
+}
+const displayForm = () => {
+    showInput.value = !showInput.value
+}
 
 axios.defaults.withCredentials = true;
 const fetchData = async() => {
-    const res = await axios.get('http://127.0.0.1:3000/home-page', {withCredentials: true});
-    console.log((await res).data)
+    const token = localStorage.getItem('jwt');
+    const res = await axios.get('http://localhost:3000/api/home-page', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+    });
+    console.log("data", res.data);
+    data.value = {...res.data};
+    tasks = res.data.taskCounts;
+    tableData = res.data.tableData;
+    userData = res.data.userData;
+    totalPages = res.data.totalPages;
+    console.log(tableData[0]);
+    console.log(tasks);
+    // console.log(data.value);
+    isLoading.value = false;
 }
 onBeforeMount(() => {
     fetchData();
+    
 })
-const isLoading = ref(true);
+const queryTableData =  async() => {
+    isLoading.value = true;
+    const token = localStorage.getItem('jwt');
+    const res = await axios.get('http://localhost:3000/api/tasks', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        params: {
+            sortBy,
+            direction
+        },
+        withCredentials: true,
+    });
+    console.log("data", res.data);
+    // data.value = {...res.data};
+    // tasks = res.data.taskCounts;
+    tableData = res.data.tableData;
+    // userData = res.data.userData;
+    console.log(tableData[0]);
+    // console.log(tasks);
+    // console.log(data.value);
+    isLoading.value = false;
+}
+const queryPage =  async() => {
+    isLoading.value = true;
+    const token = localStorage.getItem('jwt');
+    const res = await axios.get('http://localhost:3000/api/tasks', {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        params: {
+            startId,
+            sortBy,
+            direction
+        },
+        withCredentials: true,
+    });
+    console.log("data", res.data);
+    // data.value = {...res.data};
+    // tasks = res.data.taskCounts;
+    tableData = res.data.tableData;
+    // userData = res.data.userData;
+    console.log(tableData[0]);
+    // console.log(tasks);
+    // console.log(data.value);
+    isLoading.value = false;
+}
+
 const classSelector = (status) => {
     let iconClass = '';
     switch (status) {
@@ -29,46 +163,63 @@ const classSelector = (status) => {
     }
     return iconClass;
 }
+const logout = () => {
+    localStorage.removeItem('jwt');
+    // Redirect to login page
+    router.push('/login')
+    
+};
+
+const summaryCards = ref([
+    { name: 'Done', total: data.value.taskCount.completed, icon: 'fas fa-check' },
+    { name: 'In Progress', total: data.value.taskCount.inProgress, icon: 'fas fa-spinner' },
+    { name: 'To-Do', total: data.value.taskCount.todo, icon: 'fas fa-tasks' }
+]);
+console.log(summaryCards);
 
 
-const summaryCards = [
-    { name: 'Done', total: 10, icon: 'fas fa-check' },
-    { name: 'In Progress', total: 5, icon: 'fas fa-spinner' },
-    { name: 'To-Do', total: 3, icon: 'fas fa-tasks' }
-];
-const tableData = [
-    { sl: 1, Name: 'Task 1', Location: 'New York', Subcounty: 'Brooklyn', 'Financial Year': '2024-2025', Status: 'Done', Remarks: 'Lorem ipsum dolor sit amet mordecai is the best' },
-    { sl: 2, Name: 'Task 2', Location: 'Los Angeles', Subcounty: 'Hollywood', 'Financial Year': '2024-2025', Status: 'In Progress', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 3, Name: 'Task 3', Location: 'Chicago', Subcounty: 'Wrigleyville', 'Financial Year': '2024-2025', Status: 'To-Do', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 4, Name: 'Task 4', Location: 'Houston', Subcounty: 'Montrose', 'Financial Year': '2024-2025', Status: 'Done', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 5, Name: 'Task 5', Location: 'San Francisco', Subcounty: 'Mission District', 'Financial Year': '2024-2025', Status: 'In Progress', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 6, Name: 'Task 6', Location: 'Seattle', Subcounty: 'Capitol Hill', 'Financial Year': '2024-2025', Status: 'To-Do', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 7, Name: 'Task 7', Location: 'Boston', Subcounty: 'Back Bay', 'Financial Year': '2024-2025', Status: 'Done', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 8, Name: 'Task 8', Location: 'Miami', Subcounty: 'South Beach', 'Financial Year': '2024-2025', Status: 'In Progress', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 9, Name: 'Task 9', Location: 'Denver', Subcounty: 'LoDo', 'Financial Year': '2024-2025', Status: 'To-Do', Remarks: 'Lorem ipsum dolor sit amet' },
-    { sl: 10, Name: 'Task 10', Location: 'Dallas', Subcounty: 'Deep Ellum', 'Financial Year': '2024-2025', Status: 'Done', Remarks: 'Lorem ipsum dolor sit amet' }
-];
-let page = 1;
 </script>
 <template>
-<div class="container">
-
+<div  class="container">
+        <div v-if="showSuccessPopup" class="popup">
+            <!-- <p>{{ message }}</p> -->
+            <SuccessPopup :message="displayMessage" />
+        </div>
+        <div v-if="showFailurePopup" class="popup">
+            <!-- <p>{{ message }}</p> -->
+            <FailurePopup :message="displayMessage" />
+        </div>
+  
+    
     <div v-if="isLoading" class="skeleton">
         <div class="spinner-icon"><i class="fas fa-spinner"></i></div>
     </div>
     <div v-else>
+        <div class="form-holder" v-if="showInput">
+            <button class="cancel" type="button" @click="displayForm">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <TableForm @form-submitted="(message) => displaySuccessPopup(message)" @form-failed="(message) => displayFailurePopup(message)" @close-form="showInput = false" />
+        </div>
+        <div class="form-holder" v-if="showUserInput">
+            <button class="cancel" type="button" @click="displayUserForm">
+                <i class="fas fa-times-circle"></i>
+            </button>
+            <UserForm @form-submitted="(message) => displaySuccessPopup(message)"  @close-form="showInput = false" />
+        </div>
         <nav>
-            <p>Civic<span>Planner</span></p>
+            <p>County<span>Projects</span></p>
             <div class="flex">
                 <div class="welcome">
-                    <h2>Welcome back, Mordecai</h2>
-                    <p>Apr 10, 2024</p>
+                    <h2>Welcome back, {{ data.username }}</h2>
+                    <p> {{ data.date }}</p>
                 </div>
             <div class="last-part">
                 <button><i class="fas fa-bell"></i></button>
-                <button><i class="fa-solid fa-circle-user"></i> </button>
+                <button title="Log Out" @click="logout"><i class="fa-solid fa-circle-user"></i> </button>
                 <span>
-                    <button>+ Create New Task</button>
+                    <button v-if="showTasks" @click="displayForm">+ Create New Task</button>
+                    <button v-if="!showTasks" @click="displayUserForm">+ Add New User</button>
                 </span>
             </div>
             </div>
@@ -76,43 +227,36 @@ let page = 1;
         <div class="main">
             <aside>
                 <ul>
-                    <li>Dashboard</li>
-                    <li>Tasks</li>
-                    <li>Calendar</li>
-                    <li>Messages</li>
-                    <li>Settings</li>
+                    <li @click="showTasks = true" :class="{ 'bg-selected': showTasks}" >County Projects</li>
+                    <li @click="showTasks = false" :class="{ 'bg-selected': !showTasks}">User Management</li>
                 </ul>
             </aside>
             <section>
                 <div class="tasks-overview">
                     <div class="recently-completed">
-                        <p>Recently completed</p>
-                        <p class="total">5</p>
-                        <button>+ Add More</button>
-                        <div class="image">
-                        </div>
+                       
                     </div>
                     <div class="summary">
-                    <SummaryCard v-for="(card, idx) in summaryCards" v-bind="card" :index="idx" :key="idx" ></SummaryCard>
+                    <SummaryCard v-for="(card, idx) in tasks" v-bind="card" :index="idx" :key="idx" ></SummaryCard>
                     </div>
 
                 </div>
-                <div class="table">
+                <div v-if="showTasks" class="table">
                     <table>
                         <thead>
                             <tr>
                                 <th>sn</th>
-                                <th>Name <button><i class="fa-solid fa-angle-down"></i> </button></th>
-                                <th>Location <button><i class="fa-solid fa-angle-down"></i> </button></th>
-                                <th>Subcounty <button><i class="fa-solid fa-angle-down"></i> </button></th>
-                                <th>Financial Year <button><i class="fa-solid fa-angle-down"></i> </button></th>
-                                <th>Status <button><i class="fa-solid fa-angle-down"></i> </button></th>
+                                <th>Name <button><i @click="sortBy = 'name'; console.log(sortBy); queryTableData()"   class="fa-solid fa-angle-down"></i> </button></th>
+                                <th>Location <button><i @click="sortBy = 'location'; console.log(sortBy); queryTableData()" class="fa-solid fa-angle-down"></i> </button></th>
+                                <th>Subcounty <button><i @click="sortBy = 'subcounty'; console.log(sortBy); queryTableData()" class="fa-solid fa-angle-down"></i> </button></th>
+                                <th>Financial Year <button><i @click="sortBy = 'Financial Year'; console.log(sortBy); queryTableData()" class="fa-solid fa-angle-down"></i> </button></th>
+                                <th>Status <button><i @click="sortBy = 'status'; console.log(sortBy); queryTableData()" class="fa-solid fa-angle-down"></i> </button></th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(row, idx) in tableData" :key="idx">
-                                <td>{{ row.sl }}</td>
+                            <tr v-for="(row, idx) in tableData" :key="idx" @click="showData = !showData; createRow(row)">
+                                <td>{{ 10*(currentPage -1)+ idx + 1 }}</td>
                                 <td>{{ row.Name }}</td>
                                 <td>{{ row.Location }}</td>
                                 <td>{{ row.Subcounty }}</td>
@@ -120,13 +264,41 @@ let page = 1;
                                 <td class="status-col"><i :class="classSelector(row.Status)"></i>  {{ row.Status }}</td>
                                 <td class="remarks-col">{{ row.Remarks }}</td>
                             </tr>
+                            <div v-if="showData" class="data-holder">
+                                <button class="cancel" @click="showData = !showData">
+                                      <i class="fas fa-times-circle"></i>
+                                </button>
+                                <TableData @form-submitted="(message) => displaySuccessPopup(message)"  v-bind="display"/>
+                            </div>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="user-table" v-if="!showTasks">
+                    <table>
+                        <thead>
+                            <th>sn</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(row, idx) in userData" :key="idx">
+                                <td>{{ idx + 1 }}</td>
+                                <td>{{ row.username }}</td>
+                                <td>{{ row.role }}</td>
+                            </tr>
+                            <div v-if="showData" class="data-holder">
+                                <button class="cancel" @click="showData = !showData">
+                                      <i class="fas fa-times-circle"></i>
+                                </button>
+                                <TableData  v-bind="display"/>
+                            </div>
                         </tbody>
                     </table>
                 </div>
                 <div class="pagination">
-                    <p><i class="fa-solid fa-circle-left"></i></p>
-                    <p>{{ page }}</p>
-                    <p><i class="fa-solid fa-circle-right"></i></p>
+                    <!-- <button :disabled="currentPage === 1" @click="startId = tableData[0].id; console.log(startId); direction = -1; queryPage(); currentPage--;"><i class="fa-solid fa-circle-left"></i></button> -->
+                    <p> {{ currentPage }} / {{ totalPages }}</p>
+                    <button  :disabled="currentPage === totalPages" @click="startId = tableData[tableData.length - 1].id; currentPage++; queryPage()"><i class="fa-solid fa-circle-right"></i></button>
                 </div>
             </section>
         </div>
@@ -148,9 +320,10 @@ let page = 1;
     height: 90vh;
     margin: auto;
     margin-top: 20px;
-    z-index: 999;
-    background-color: #cad6d6;
+    z-index: 2;
+    background-color:  #b8d8ba;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
     .skeleton {
         display: flex;
         justify-content: center;
@@ -161,6 +334,50 @@ let page = 1;
             animation: spin 2s linear infinite;
         }
     }
+    .popup {
+        position: absolute;
+        top: 20px;
+        right: 50%;
+        transform: translateX(50%);
+        z-index: 3;
+       
+    }
+    .cancel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        }
+        .cancel:hover {
+            color: red;
+        }
+    .form-holder {
+        position:absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        z-index: 9000000;
+        background-color: #2e7a4d;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        .cancel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: transparent;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        }
+        .cancel:hover {
+            color: red;
+        }
+    }
     nav {
         display: grid;
         grid-template-columns: 1fr 3fr;
@@ -169,7 +386,7 @@ let page = 1;
             padding: 0;
             margin: 0;
             span {
-                color: #334eac;
+                color: #2e7a4d;
                 font-weight: bold;
             }
         }
@@ -183,7 +400,7 @@ let page = 1;
                     margin: 0;
                 }
                 p {
-                    color: #334eac;
+                    color: #2e7a4d;
                     margin: 0;
                     padding: 0;
                     font-size: 0.75rem;
@@ -198,13 +415,13 @@ let page = 1;
             margin: 5px;
             button {
                border: none;
-               color: #334eac;
+               color: #2e7a4d;
                font-size: 1.5rem;
                background-color: transparent;
             }
             span {
                 button {
-                    background-color: #334eac;
+                    background-color: #2e7a4d;
                     color: white;
                     border: none;
                     padding: 10px 20px;
@@ -227,6 +444,10 @@ let page = 1;
                     padding: 10px;
                     // border-bottom: 1px solid #334eac;
                     cursor: pointer;
+                    border-radius: 10px;
+                }
+                .bg-selected {
+                    background-color: #f5f5f5;
                 }
             }
         }
@@ -243,7 +464,12 @@ let page = 1;
                     justify-content: space-evenly;
                 }
                 .recently-completed {
-                    border: 2px solid #334eac;
+                    // background-color: #334eac;
+                    border: 2px solid #FFC107;
+                    background: url('../assets/county_logo.jpeg');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
                     // background-color: rgba(186, 214, 235, 0.7);
                     height: 150px;
                     width: 150px;
@@ -266,7 +492,7 @@ let page = 1;
                         font-size: 1.25rem;
                     }
                     button {
-                        background-color: #334eac;
+                        background-color: #276221;
                         color: white;
                         border: none;
                         padding: 10px 20px;
@@ -274,7 +500,6 @@ let page = 1;
                         font-size: 1rem;
                     } 
                     .image {
-                        background: url('../assets/verify.gif');
                         background-position: right;
                         background-size: cover;
                         background-repeat: no-repeat;
@@ -297,8 +522,23 @@ let page = 1;
                     width: 100%;
                     border-collapse: collapse;
                     cursor: pointer;
+                    tbody {
+                        min-height: 400px;
+                        position: relative;
+                        .data-holder {
+                            background-color: #276221;
+                            position: absolute;
+                            width: 250px;
+                            height: 350px;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            border-radius: 25px;
+                            
+                        }
+                    }
                     th {
-                        background-color: #334eac;
+                        background-color: #2e7a4d;
                         color: white;
                         padding: 10px;
                         button {
@@ -314,10 +554,10 @@ let page = 1;
                     }
                     td {
                         padding: 10px;
-                        border-bottom: 1px solid #334eac;
+                        border-bottom: 1px solid #2e7a4d;
                     }
                     tr:hover {
-                        background-color: #41a7f5;
+                        background-color:  #90EE90;
                     }
                     .remarks-col {
                         overflow: hidden;
@@ -344,12 +584,42 @@ let page = 1;
                     }
                 }
             }
+            .user-table {
+                table {
+                    width: 50%;
+                    border-collapse: collapse;
+                    margin: auto;
+                    margin-top: 20px;
+                    cursor: pointer;
+                
+                th {
+                    background-color:  #2e7a4d;
+                        color: white;
+                        padding: 10px;
+                }
+                td {
+                        padding: 10px;
+                        border-bottom: 1px solid  #2e7a4d;
+                    }
+                    tr:hover {
+                        background-color:  #90EE90;
+                    }
+            }
+            }
             .pagination {
                 display: flex;
                 // position: absolute;
                 margin: auto;
                 bottom: 0;
                 width: 20%;
+                i {
+                    margin: 0 2px;
+                }
+                button {
+                    background: none;
+                    padding: 0;
+                    border: none;
+                }
             }
         }
     }

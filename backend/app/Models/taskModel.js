@@ -20,10 +20,11 @@ const taskSchema = new Schema({
     },
     status: {
         type: Schema.Types.String,
-        isIn: {
-            errorMessage: 'Status should be either todo, in-progress or done',
-            options: ['todo', 'in-progress', 'done'],
-        },
+        enum: ['todo', 'in-progress', 'done'],
+        // isIn: {
+        //     options: ['todo', 'in-progress', 'done'],
+        //     errorMessage: 'Status should be either todo, in-progress or done',
+        // },
         required: true
     },
     remarks: {

@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <div class="login-page">
-            <p class="logo">Civic<span>Planner</span></p>
+            <p class="logo">County<span>Projects</span></p>
             <div class="form">
                 <h1>Welcome Back!</h1>
                 <p>Please enter your details</p>
@@ -37,13 +37,18 @@ let urlEncodedData = '';
 const login = async () => {
     try {
         urlEncodedData = new URLSearchParams(formData.value).toString();
-        const res = axios.post('http://127.0.0.1:3000/api/login', urlEncodedData, {
+        const res = await axios.post('http://localhost:3000/api/login', urlEncodedData, {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
                 })
-        if ((await res).status === 200)
-                router.push('/');
+        if ((res).status === 200)
+        {
+            localStorage.setItem('jwt', res.data.jwt);
+            console.log((res).data);
+            router.push('/');
+
+        }
     } catch (error) {
         console.error(error);
     }
@@ -69,7 +74,7 @@ const login = async () => {
             padding: 0;
             margin-left: 5px;
             span {
-                color: #334eac;
+                color: #2e7a4d;;
             }
         }
         .form {
@@ -100,13 +105,13 @@ const login = async () => {
                 input {
                     padding: 0.5rem;
                     margin-top: 0.5rem;
-                    border: 1px solid #334eac;
+                    border: 1px solid #2e7a4d;;
                     border-radius: 0.5rem;
                 }
                 button {
                     padding: 0.5rem;
                     margin-top: 1rem;
-                    background-color: #334eac;
+                    background-color: #2e7a4d;;
                     color: #ffff;
                     border: none;
                     border-radius: 0.5rem;
@@ -126,7 +131,7 @@ const login = async () => {
                 border-radius: 50%;
                 width: 200px;
                 height: 200px;
-                background-color: #334eac;
+                background-color: #2e7a4d;;
                 box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
         }
     }

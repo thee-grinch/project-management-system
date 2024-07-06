@@ -2,30 +2,30 @@
 import { defineProps } from 'vue';
 
 const props = defineProps({
-    icon: {
-        type: String,
-        required: true
-    },
     name: {
         type: String,
-        required: true
+        // required: true
     },
     total: {
         type: Number,
-        required: true
-    },
-    index: {
-        type: Number,
+        // required: true
     }
 });
 const index = props.index;
+console.log(index);
 const colors = ['green', 'blue', 'orange']
+// const names = ['Done', 'In Progress', 'To Do']
+const icons = {
+    Done: 'fas fa-check',
+    "In Progress": 'fas fa-spinner',
+    "To Do": 'fas fa-times'
+};
 
 </script>
 <template>
 <div class="holder">
-    <i :class="props.icon" ></i>
-    <p>{{ props.name }}</p>
+    <i :class="icons[props.name]" ></i>
+    <p class="name">{{ props.name }}</p>
     <p>{{ props.total }}</p>
 
 </div>
@@ -38,7 +38,10 @@ const colors = ['green', 'blue', 'orange']
     i {
         font-size: 2rem;
         padding: 15px;
-        color: #334eac
+        color: #228b22
+    }
+    .name {
+        font-weight: bold;
     }
 }
 </style>

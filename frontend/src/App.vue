@@ -1,6 +1,7 @@
 <template>
   <!-- <LoginPage /> -->
   <router-view />
+   <!-- <TableForm /> -->
 </template>
 
 <style>
@@ -17,11 +18,12 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background-color: #B3C4C4;
+  background-color: #a8c0c0;
 
 }
 </style>
 <script setup>
+// import TableForm from './components/TableForm.vue';
 // import LoginPage from './components/LoginPage.vue';
 // import HomePage from './components/HomePage.vue';
 
