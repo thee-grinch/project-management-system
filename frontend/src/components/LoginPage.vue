@@ -10,9 +10,10 @@
                     <label for="username">Username:</label>
                     <input type="text" id="username" v-model="formData.username" placeholder="username" required>
                     <label for="password">Password:</label>
-                    <input type="password" id="password" placeholder="password" v-model="formData.password" required>
+                    <input @click="showResponse=false" type="password" id="password" placeholder="password" v-model="formData.password" required>
                     <button type="submit" @click.prevent="login">Login</button>
                 </form>
+                <p class="response" v-if="showResponse"> {{ response }}</p>
             </div>
         </div>
         <div class="image-holder">
@@ -32,7 +33,8 @@ const formData = ref({
     username: '',
     password: ''
 })
-let response = ref(null);
+const showResponse = ref(false);
+const response = ref(null);
 let urlEncodedData = '';
 const login = async () => {
     try {
@@ -50,7 +52,12 @@ const login = async () => {
 
         }
     } catch (error) {
-        console.error(error);
+        response.value = 'Invalid username or password';
+        showResponse.value = true;
+        setTimeout(() => {
+          showResponse.value = false;
+         }, 3000);
+        console.log(error);
     }
 }
         
@@ -120,6 +127,10 @@ const login = async () => {
             }
         }
         
+    }
+    p.response {
+        font-size: 1rem;
+        color: red;
     }
     .image-holder {
         display: flex;

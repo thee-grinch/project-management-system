@@ -9,7 +9,7 @@ router.post('/api/add-task',  checkSchema(taskValidation), async (request, respo
     console.log('api called')
     // if (request.isAuthenticated === false) return response.status(400).json({message: 'Login failed'})
     const errors = validationResult(request)
-    if (!errors.isEmpty()) return response.status(400).json(errors.array())
+    if (!errors.isEmpty()) return response.status(400).json({ errors: errors.array().map(error => error.msg) })
     const task = matchedData(request);
     try  {
         console.log('creating task')
@@ -74,7 +74,7 @@ router.get('/api/home-page', async(request, response) => {
 
         // console.log('clean users', users)
 
-        return response.status(200).json({taskCounts, username, role, date: formattedDate, tableData: cleanTasks, totalPages ,userData: cleanUsers });
+        return response.status(200).json({taskCounts,isAdmin: request.user.role === 'admin', username, role, date: formattedDate, tableData: cleanTasks, totalPages ,userData: cleanUsers });
     } catch (error) {
         console.log(error);
         return response.status(501).json({ message: "unable to load homepage" });

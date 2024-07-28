@@ -5,35 +5,35 @@ const newUserValidation = {
         in: ['body'],
         isString: true,
         exists: {
-            errorMessage: 'Username is required',
+            msg: 'Username is required',
             options: { checkFalsy: true , checkNull: true },
         },
         isLength: {
-            errorMessage: 'Username should be at least 4 characters long',
-            options: { min: 5 }
+            msg: 'Username should be at least 4 characters long',
+            options: { min: 4 }
         }
     },
     password: {
         in: ['body'],
         isString: true,
         exists: {
-            errorMessage: 'Password is required',
+            msg: 'Password is required',
             options: { checkFalsy: true , checkNull: true },
         },
         isLength: {
-            errorMessage: 'Password should be at least 5 characters long',
-            options: { min: 5 }
+            msg: 'Password should be at least 4 characters long',
+            options: { min: 4 }
         }
     },
     role: {
         in: ['body'],
         isString: true,
         exists: {
-            errorMessage: 'Role is required',
+            msg: 'Role is required',
             options: { checkFalsy: true , checkNull: true },
         },
         isIn: {
-            errorMessage: 'Role should be either admin, clerk or viewer',
+            msg: 'Role should be either admin, clerk or viewer',
             options: [['admin', 'clerk', 'viewer']]
         }
     }
@@ -44,24 +44,24 @@ const loginUserValidation = {
         in: ['body'],
         isString: true,
         exists: {
-            errorMessage: 'Username is required',
+            msg: 'Username is required',
             options: { checkFalsy: true , checkNull: true },
         },
         isLength: {
-            errorMessage: 'Username should be at least 4 characters long',
-            options: { min: 5 }
+            msg: 'Username should be at least 4 characters long',
+            options: { min: 4 }
         }
     },
     password: {
         in: ['body'],
         isString: true,
         exists: {
-            errorMessage: 'Password is required',
+            msg: 'Password is required',
             options: { checkFalsy: true , checkNull: true },
         },
         isLength: {
-            errorMessage: 'Password should be at least 5 characters long',
-            options: { min: 5 }
+            msg: 'Password should be at least 4 characters long',
+            options: { min: 4 }
         }
     },
 }

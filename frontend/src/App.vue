@@ -19,6 +19,7 @@ body {
   padding: 0;
   font-family: sans-serif;
   background-color: #a8c0c0;
+  min-width: 1400px;
 
 }
 </style>

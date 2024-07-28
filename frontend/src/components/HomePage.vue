@@ -32,6 +32,7 @@ const showSuccessPopup = ref(false);
 const showFailurePopup = ref(false);
 let displayMessage = "testing";
 let failureMessage = "testing";
+let admin =ref(false);
 // const 
 
 const displaySuccessPopup = (message) => {
@@ -73,26 +74,50 @@ const displayUserForm = () => {
 const displayForm = () => {
     showInput.value = !showInput.value
 }
+const deleteUser = async(id) => {
+    try {
+        const token = localStorage.getItem('jwt');
+        const res = await axios.delete(`http://localhost:3000/api/user/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            withCredentials: true,
+        });
+    } catch(error) {
+        displayFailurePopup("Failed to delete user");
+        // console.log(error.response.data); 
+    }
+}
 
 axios.defaults.withCredentials = true;
 const fetchData = async() => {
-    const token = localStorage.getItem('jwt');
+    try {
+        const token = localStorage.getItem('jwt');
     const res = await axios.get('http://localhost:3000/api/home-page', {
         headers: {
             Authorization: `Bearer ${token}`,
         },
         withCredentials: true,
     });
+    if (res.status === 401) {
+        console.log('status', res.status)
+        router.push('/login');
+    }
     console.log("data", res.data);
     data.value = {...res.data};
     tasks = res.data.taskCounts;
     tableData = res.data.tableData;
     userData = res.data.userData;
+    admin.value = res.data.isAdmin;
+    console.log("admin", admin.value);
     totalPages = res.data.totalPages;
     console.log(tableData[0]);
     console.log(tasks);
     // console.log(data.value);
     isLoading.value = false;
+    } catch {
+    router.push('/login');
+    }
 }
 onBeforeMount(() => {
     fetchData();
@@ -170,6 +195,7 @@ const logout = () => {
     
 };
 
+
 const summaryCards = ref([
     { name: 'Done', total: data.value.taskCount.completed, icon: 'fas fa-check' },
     { name: 'In Progress', total: data.value.taskCount.inProgress, icon: 'fas fa-spinner' },
@@ -228,7 +254,7 @@ console.log(summaryCards);
             <aside>
                 <ul>
                     <li @click="showTasks = true" :class="{ 'bg-selected': showTasks}" >County Projects</li>
-                    <li @click="showTasks = false" :class="{ 'bg-selected': !showTasks}">User Management</li>
+                    <li @click="showTasks = false" :class="{ 'bg-selected': !showTasks}" v-if="admin">User Management</li>
                 </ul>
             </aside>
             <section>
@@ -282,9 +308,11 @@ console.log(summaryCards);
                         </thead>
                         <tbody>
                             <tr v-for="(row, idx) in userData" :key="idx">
+                                
                                 <td>{{ idx + 1 }}</td>
                                 <td>{{ row.username }}</td>
                                 <td>{{ row.role }}</td>
+                                <td  @click="deleteUser(row.id)" class="delete"><i class="fas fa-trash-alt"></i></td>
                             </tr>
                             <div v-if="showData" class="data-holder">
                                 <button class="cancel" @click="showData = !showData">
@@ -316,6 +344,7 @@ console.log(summaryCards);
   }
 }
 .container {
+    // min-width: 1000px;
     width: 80%;
     height: 90vh;
     margin: auto;
@@ -556,6 +585,7 @@ console.log(summaryCards);
                         padding: 10px;
                         border-bottom: 1px solid #2e7a4d;
                     }
+                    
                     tr:hover {
                         background-color:  #90EE90;
                     }
@@ -598,12 +628,29 @@ console.log(summaryCards);
                         padding: 10px;
                 }
                 td {
-                        padding: 10px;
-                        border-bottom: 1px solid  #2e7a4d;
-                    }
-                    tr:hover {
+                    padding: 10px;
+                    border-bottom: 1px solid  #2e7a4d;
+                }
+                tr:hover {
+                    td {
                         background-color:  #90EE90;
                     }
+                    .delete {
+                        background-color: transparent;
+                    }
+                    // background-color:  #90EE90;
+                }
+                td.delete {
+                        border-bottom: none;
+                        i {
+                            color: red;
+                        }
+                    }
+                td.delete:hover {
+                    i {
+                        color: green;
+                    }
+                }
             }
             }
             .pagination {

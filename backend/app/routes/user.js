@@ -6,16 +6,29 @@ const { checkSchema, matchedData, validationResult} = require('express-validator
 const {newUserValidation, loginUserValidation} = require('../Validations/user')
 const passport = require('../strategies/localStrategy')
 
-
+router.post('/api/start', async(request, response) => {
+    if (User.find().count() > 0) return response.status(400).json({message: 'User already exists'})
+    const username = process.env.newUser;
+    const password = process.env.newPass;
+    const passHash = await hashPassword(passHash);
+    const user = new User({username, password});
+    user.save()
+        .then(user => {
+            response.status(201).json({"username": user.username, "password": password});
+        })
+        .catch(error => {
+            response.status(400).json(error);
+        });
+});
 router.post('/api/add-user', checkSchema(newUserValidation), async (request, response) => {
     const errors = validationResult(request)
     console.log(errors.array())
-    if (request.isAuthenticated === false) return response.status(400).json({message: 'Login failed'})
-    if (!errors.isEmpty()) return response.status(401).json({message: errors.array()})
+    // if (request.isAuthenticated === false) return response.status(400).json({message: 'Login failed'})
+    if (!errors.isEmpty()) return response.status(400).json({ errors: errors.array().map(error => error.msg) })
 
     console.log(request.headers)
 
-    if (request.user.role !== 'admin') return response.status(400).send('unauthorised')
+    // if (request.user.role !== 'admin') return response.status(400).send('unauthorised')
     const user = matchedData(request);
     console.log(user)
     user.password = await hashPassword(user.password)
@@ -102,6 +115,20 @@ router.patch('/api/user/:id', async (request, response) => {
         return response.status(501).json({ message: "unable to update user" });
     }
 })
-
+router.delete('/api/user/:id', async (request, response) => {
+    if (request.isAuthenticated() === false) return response.status(400).json({message: 'Login failed'})
+    if (request.user.role !== 'admin') return response.status(400).json({"message": "unauthorised"})
+    const { id } = request.params;
+    if (id === request.user.id) return response.status(400).json({ message: "Cannot delete self" });
+    try {
+        const deletedUser = await User.findByIdAndDelete(id);
+        if (!deletedUser) return response.status(404).json({ message: "User not found" });
+        const { password, __v, ...cleanUser } = deletedUser.toObject();
+        return response.status(200).json(cleanUser);
+    } catch (error) {
+        console.log(error);
+        return response.status(501).json({ message: "unable to delete user" });
+    }
+})
 
 module.exports = router;
