@@ -86,7 +86,7 @@ const submitForm = () => {
     } else if(username.length < 4 || password.length < 4) {
         emit('formFailed', 'Username and password must be atleast 4 characters');
     }
-    axios.post('http://127.0.0.1:3000/api/add-user', data, { headers })
+    axios.post('/api/add-user', data, { headers })
         .then(response => {
             console.log(response.data);
              emit('formSubmitted', "User Added succesfully!");

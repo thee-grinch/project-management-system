@@ -78,7 +78,7 @@ const displayForm = () => {
 const deleteUser = async(id) => {
     try {
         const token = localStorage.getItem('jwt');
-        const res = await axios.delete(`http://localhost:3000/api/user/${id}`, {
+        const res = await axios.delete(`/api/user/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -94,7 +94,7 @@ axios.defaults.withCredentials = true;
 const fetchData = async() => {
     try {
         const token = localStorage.getItem('jwt');
-    const res = await axios.get('http://localhost:3000/api/home-page', {
+    const res = await axios.get('/api/home-page', {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -128,7 +128,7 @@ onBeforeMount(() => {
 const queryTableData =  async() => {
     isLoading.value = true;
     const token = localStorage.getItem('jwt');
-    const res = await axios.get('http://localhost:3000/api/tasks', {
+    const res = await axios.get('/api/tasks', {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -151,7 +151,7 @@ const queryTableData =  async() => {
 const queryPage =  async() => {
     isLoading.value = true;
     const token = localStorage.getItem('jwt');
-    const res = await axios.get('http://localhost:3000/api/tasks', {
+    const res = await axios.get('/api/tasks', {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -330,6 +330,7 @@ console.log(summaryCards);
                     <p> {{ currentPage }} / {{ totalPages }}</p>
                     <button  :disabled="currentPage === totalPages" @click="startId = tableData[tableData.length - 1].id; currentPage++; queryPage()"><i class="fa-solid fa-circle-right"></i></button>
                 </div>
+                <div v-else></div>
             </section>
         </div>
     </div>
@@ -337,6 +338,7 @@ console.log(summaryCards);
 </div>
 </template>
 <style scoped lang="scss">
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);

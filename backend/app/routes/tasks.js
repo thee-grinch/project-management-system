@@ -41,7 +41,7 @@ router.get('/api/home-page', async(request, response) => {
             { name: "In Progress", total: inProgressTasks },
             { name: "To Do", total: todoTasks }
         ];
-        const { startId = null, sortBy = '', direction = 1, limit = 10 } = request.query;
+        const { startId = null, sortBy = '', direction = 1, limit = 10} = request.query;
         const query = startId ? { _id: { $gt: startId } } : {};
         const tasks = await Task.find(query)
             // .sort({ [sortBy]: Number(direction) })

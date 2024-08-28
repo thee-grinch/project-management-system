@@ -39,7 +39,7 @@ let urlEncodedData = '';
 const login = async () => {
     try {
         urlEncodedData = new URLSearchParams(formData.value).toString();
-        const res = await axios.post('http://localhost:3000/api/login', urlEncodedData, {
+        const res = await axios.post('/api/login', urlEncodedData, {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },

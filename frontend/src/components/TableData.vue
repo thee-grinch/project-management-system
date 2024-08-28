@@ -58,7 +58,7 @@ const inProgress = ref(false);
 // Methods
 const patchTask = async(newStatus) => {
     const token = localStorage.getItem('jwt');
-    const res = await axios.patch(`http://localhost:3000/api/tasks/${props.id}`,{
+    const res = await axios.patch(`/api/tasks/${props.id}`,{
         status: newStatus,
     },
      {
@@ -76,7 +76,7 @@ const patchTask = async(newStatus) => {
 
 const deleteTask = async() => {
     const token = localStorage.getItem('jwt');
-    const res = await axios.delete(`http://localhost:3000/api/tasks/${props.id}`,
+    const res = await axios.delete(`/api/tasks/${props.id}`,
      {
         headers: {
             Authorization: `Bearer ${token}`,

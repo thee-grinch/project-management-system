@@ -117,7 +117,7 @@ const submitForm = () => {
         return;
     }
     
-    axios.post('http://127.0.0.1:3000/api/add-task', data, { headers })
+    axios.post('/api/add-task', data, { headers })
         .then(response => {
             console.log(response.data);
             emit('formSubmitted', "Project Added Successfully!");

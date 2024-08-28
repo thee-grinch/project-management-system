@@ -30,7 +30,7 @@ const alreadyLoggedIn = ref(false);
 const login = async() => {
     console.log('login');
     try {
-        const res = await axios.get('http://localhost:3000/api/start');
+        const res = await axios.get('/api/start');
         username.value = res.data.username;
         password.value = res.data.password;
         console.log(res);
