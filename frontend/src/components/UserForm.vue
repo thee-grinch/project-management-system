@@ -81,7 +81,11 @@ const submitForm = () => {
         role: status.value
     };
     // return console.log(data);
-    
+    if (username === '' || password === '' || status === '') {
+        emit('formFailed', 'Please fill all fields');
+    } else if(username.length < 4 || password.length < 4) {
+        emit('formFailed', 'Username and password must be atleast 4 characters');
+    }
     axios.post('http://127.0.0.1:3000/api/add-user', data, { headers })
         .then(response => {
             console.log(response.data);
@@ -89,7 +93,8 @@ const submitForm = () => {
 
         })
         .catch(error => {
-            emit('formFailed', "Failed to add User")
+           
+            emit('formFailed', 'An error occured');
             // Handle error response here
         });
 };

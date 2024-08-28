@@ -102,15 +102,33 @@ const submitForm = () => {
         description
     };
     // return console.log(data);
+    if (name.length < 4) {
+        emit('formFailed', 'Name must be at least 4 characters long');
+        return;
+    }
+
+    if (isNaN(Number(financialYear))) {
+        emit('formFailed', 'Financial Year must be a number');
+        return;
+    }
+
+    if (name === '' || location === '' || subcounty === '' || financialYear === '' || status === '' || remarks === '' || description === '') {
+        emit('formFailed', 'Please fill all fields');
+        return;
+    }
     
-    axios.post('http://127.0.0.1:3000/api/add-tas', data, { headers })
+    axios.post('http://127.0.0.1:3000/api/add-task', data, { headers })
         .then(response => {
             console.log(response.data);
             emit('formSubmitted', "Project Added Successfully!");
             // Handle success response here
         })
         .catch(error => {
-            emit('formFailed', "Failed to add project")
+            const errorData = error.response.data
+            const errorMessage = error?.response?.data?.message?.[0] || 'Failed to add project';
+
+            console.log(errorData);
+            emit('formFailed', errorMessage);
             // Handle error response here
         });
 };

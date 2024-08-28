@@ -2,6 +2,7 @@
   <!-- <LoginPage /> -->
   <router-view />
    <!-- <TableForm /> -->
+  <!-- <StartPage /> -->
 </template>
 
 <style>
@@ -24,6 +25,7 @@ body {
 }
 </style>
 <script setup>
+// import StartPage from './components/StartPage.vue';
 // import TableForm from './components/TableForm.vue';
 // import LoginPage from './components/LoginPage.vue';
 // import HomePage from './components/HomePage.vue';

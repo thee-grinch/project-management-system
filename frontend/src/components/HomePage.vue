@@ -32,7 +32,8 @@ const showSuccessPopup = ref(false);
 const showFailurePopup = ref(false);
 let displayMessage = "testing";
 let failureMessage = "testing";
-let admin =ref(false);
+let admin = ref(false);
+let clerk = ref(false);
 // const 
 
 const displaySuccessPopup = (message) => {
@@ -108,7 +109,8 @@ const fetchData = async() => {
     tasks = res.data.taskCounts;
     tableData = res.data.tableData;
     userData = res.data.userData;
-    admin.value = res.data.isAdmin;
+    admin.value = res.data.role === 'admin';
+    clerk.value = res.data.role === 'clerk';
     console.log("admin", admin.value);
     totalPages = res.data.totalPages;
     console.log(tableData[0]);
@@ -231,7 +233,7 @@ console.log(summaryCards);
             <button class="cancel" type="button" @click="displayUserForm">
                 <i class="fas fa-times-circle"></i>
             </button>
-            <UserForm @form-submitted="(message) => displaySuccessPopup(message)"  @close-form="showInput = false" />
+            <UserForm @form-failed="(message) => displayFailurePopup(message)" @form-submitted="(message) => displaySuccessPopup(message)"  @close-form="showInput = false" />
         </div>
         <nav>
             <p>County<span>Projects</span></p>
@@ -244,8 +246,8 @@ console.log(summaryCards);
                 <button><i class="fas fa-bell"></i></button>
                 <button title="Log Out" @click="logout"><i class="fa-solid fa-circle-user"></i> </button>
                 <span>
-                    <button v-if="showTasks" @click="displayForm">+ Create New Task</button>
-                    <button v-if="!showTasks" @click="displayUserForm">+ Add New User</button>
+                    <button :disabled="!admin || !clerk" v-if="showTasks" @click="displayForm">+ Create New Task</button>
+                    <button :disabled="!admin || !clerk" v-if="!showTasks" @click="displayUserForm">+ Add New User</button>
                 </span>
             </div>
             </div>
@@ -323,7 +325,7 @@ console.log(summaryCards);
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination">
+                <div v-if="showTasks" class="pagination">
                     <!-- <button :disabled="currentPage === 1" @click="startId = tableData[0].id; console.log(startId); direction = -1; queryPage(); currentPage--;"><i class="fa-solid fa-circle-left"></i></button> -->
                     <p> {{ currentPage }} / {{ totalPages }}</p>
                     <button  :disabled="currentPage === totalPages" @click="startId = tableData[tableData.length - 1].id; currentPage++; queryPage()"><i class="fa-solid fa-circle-right"></i></button>

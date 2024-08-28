@@ -1,5 +1,5 @@
 <template>
-    <div class="start-page">
+    <div v-if="!alreadyLoggedIn" class="start-page">
         <h1>Welcome to the Project Management System</h1>
         <p>Please enter your login credentials:</p>
         <div class="login-form">
@@ -9,25 +9,42 @@
             <p>{{ password }}</p>
         </div>
     </div>
+    <div v-else>
+        <h1>Welcome to the Project Management System</h1>
+        <p>You are already logged in.</p>
+        <p>Enter details provided during start up. Thanks</p>
+        <p>If you think this is a mistake contack the system administrator</p>
+        <p>&COPY; {{ currentYear }}</p>
+    </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            username: '',
-            password: ''
-        };
-    },
-    mounted() {
-        // Fetch login credentials from the database and update the data properties
-        // Example:
-        // fetchLoginCredentials().then(credentials => {
-        //   this.username = credentials.username;
-        //   this.password = credentials.password;
-        // });
+<script setup>
+import axios from 'axios';
+import { ref, onBeforeMount } from 'vue';
+const currentYear = new Date().getFullYear();
+const username = ref('');
+const password = ref('');
+
+const alreadyLoggedIn = ref(false);
+
+const login = async() => {
+    console.log('login');
+    try {
+        const res = await axios.get('http://localhost:3000/api/start');
+        username.value = res.data.username;
+        password.value = res.data.password;
+        console.log(res);
     }
-};
+    catch (error) {
+        alreadyLoggedIn.value = true;
+        console.log(error);
+        console.log('Already logged in');
+        
+    }
+}
+onBeforeMount(() => {
+    login();
+});
 </script>
 
 <style scoped>
@@ -50,4 +67,3 @@ p {
     margin-bottom: 10px;
 }
 </style>
-</template>
