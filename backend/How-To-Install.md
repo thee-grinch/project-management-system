@@ -47,7 +47,8 @@ HOW TO HOST THIS APPLICATION IN THE SERVER
         ``` project-management-system/frontend/dist
         ```
 8.   Now set up your server configuration to serve the frontend application (step 7), and proxy pass all urls starting with /api to the backend server localhost:3000
-9. for any details please contact:
+9.   to create a start user with the login details in the .env file, visit /start after the server configuration
+10. for any details please contact:
     Mordecai Muvandi 0798548329
     Email: mordecaimuvandi16@gmail.com
 
